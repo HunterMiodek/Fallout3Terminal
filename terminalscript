@@ -51,7 +51,6 @@ login_func() {
 # Function to change the password
 change_password_func() {
     clear
-    echo "Current password is: $CORRECT_PASSWORD"
     read -s -p "Enter new password: " new_password
     echo
     read -s -p "Confirm new password: " confirm_password
@@ -80,7 +79,7 @@ mainmenufunc() {
 
     # Display the menu options
     COLUMNS=12
-    select menuchoice in "View Journal Entries" "Log a Journal Entry" "Delete a Journal Entry" "Edit a Journal Entry" "Change Password" "Proceed to Desktop"
+    select menuchoice in "View Journal Entries" "Log a Journal Entry" "Delete a Journal Entry" "Change Password" "Proceed to Desktop"
     do
         case $menuchoice in
             "View Journal Entries")
@@ -94,10 +93,6 @@ mainmenufunc() {
             "Delete a Journal Entry")
                 play -q "$BASE_DIR/ui_hacking_charenter_01.wav"
                 deleteentryfunc
-                ;;
-            "Edit a Journal Entry")
-                play -q "$BASE_DIR/ui_hacking_charenter_01.wav"
-                editentryfunc
                 ;;
             "Change Password")
                 play -q "$BASE_DIR/ui_hacking_charenter_01.wav"
@@ -256,45 +251,75 @@ deleteentryfunc() {
     done
 }
 
-# Edit entry function
-editentryfunc() {
-    # Display a menu to select an entry to edit
-    entrylist=('Go Back')
-    rawentry="$(find $BASE_DIR/entries -type f)"
-    for i in $rawentry; do
-        i=${i##*/}
-        entrylist+=("$i")
-    done
-
+# Function for repeating the main menu
+repeatmainmenufunc() {
     clear
     display_center "$BASE_DIR/greeterheader.txt"
-    echo "$greeter"
+    echo "$greeter" 
     play -q "$BASE_DIR/ui_hacking_charscroll.wav"
-    echo "Which Journal Entry would you like to edit?" | pv -qL 80
-
-    select readoption in "${entrylist[@]}"; do
-        case $readoption in
-            "Go Back")
+    echo "What would you like to do?" | pv -qL 80
+    COLUMNS=12
+    select menuchoice in "View Journal Entries" "Log a Journal Entry" "Delete a Journal Entry" "Change Password" "Proceed to Desktop"
+    do
+        case $menuchoice in
+            "View Journal Entries")
                 play -q "$BASE_DIR/ui_hacking_charenter_01.wav"
-                repeatmainmenufunc
+                viewentriesfunc
+                ;;
+            "Log a Journal Entry")
+                play -q "$BASE_DIR/ui_hacking_charenter_01.wav"
+                writeentryfunc
+                ;;
+            "Delete a Journal Entry")
+                play -q "$BASE_DIR/ui_hacking_charenter_01.wav"
+                deleteentryfunc
+                ;;
+            "Change Password")
+                play -q "$BASE_DIR/ui_hacking_charenter_01.wav"
+                change_password_func
+                ;;
+            "Proceed to Desktop")
+                play -q "$BASE_DIR/ui_hacking_charenter_01.wav"
+                echo "Goodbye!" && exit
                 ;;
             *)
-                echo "Editing $readoption..." | pv -qL 80
-                nano "$BASE_DIR/entries/$readoption"
-                clear
-                play -q "$BASE_DIR/ui_hacking_charenter_01.wav"
-                repeatmainmenufunc
+                play -q "$BASE_DIR/ui_hacking_passbad.wav"
                 ;;
         esac
     done
 }
 
-# Function for repeating the main menu
-repeatmainmenufunc() {
-    read -p "Press enter to continue"
-    mainmenufunc
-}
+# Some random aesthetic startup junk
+clear
+play -q "$BASE_DIR/ui_hacking_charscroll.wav"
+echo "Initializing system boot..." | pv -qL 80
+sleep 0.4
+play -q "$BASE_DIR/ui_hacking_charscroll.wav"
+echo "Loading Federal Terminal OS..." | pv -qL 80
+sleep 0.4
+play -q "$BASE_DIR/ui_hacking_charscroll.wav"
+echo "64K RAM detected..." | pv -qL 80
+sleep 0.4
+play -q "$BASE_DIR/ui_hacking_charscroll.wav"
+echo "Hard Disk Drive recommended..." | pv -qL 80
+sleep 0.4
+play -q "$BASE_DIR/ui_hacking_charscroll.wav"
+echo "Launching Interface..." | pv -qL 80
+sleep 0.4
+clear
+echo $'
+ _  _  ____  __     ___  __   _  _  ____ 
+/ )( \(  __)(  )   / __)/  \ ( \/ )(  __)
+\ /\ / ) _) / (_/\( (__(  O )/ \/ \ ) _) 
+(_/\_)(____)\____/ \___)\__/ \_)(_/(____)
+'
+           
+echo "==============================================" | pv -qL 50
+play -q "$BASE_DIR/ui_hacking_passgood.wav"
+sleep 1
 
-# Start of the script
+# Call the login function first
 login_func
+
+# Go to the main menu
 mainmenufunc
