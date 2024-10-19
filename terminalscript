@@ -66,6 +66,63 @@ change_password_func() {
     repeatmainmenufunc
 }
 
+# Function to display the calendar
+view_calendar() {
+    clear
+    echo "$greeter"
+    echo "Calendar"
+    echo "========="
+    play -q "$BASE_DIR/ui_hacking_charscroll.wav"
+
+    # Display the current month's calendar
+    cal
+
+    # Add events or view events for the specific day
+    echo "What would you like to do?"
+    echo "1. Add an event for today"
+    echo "2. View events for today"
+    echo "3. Go back"
+
+    read -p "Choose an option: " calendar_choice
+    case $calendar_choice in
+        1) add_event ;;
+        2) view_event ;;
+        3) repeatmainmenufunc ;;
+        *) echo "Invalid option." && sleep 1 && view_calendar ;;
+    esac
+}
+
+# Function to add an event
+add_event() {
+    clear
+    echo "$greeter"
+    echo "Add Event"
+    echo "========="
+    read -p "Enter the event description: " event_description
+    today=$(date +%Y-%m-%d)
+    echo "$event_description" >> "$BASE_DIR/entries/$today.txt"
+    echo "Event added for $today."
+    sleep 2
+    view_calendar
+}
+
+# Function to view events for a specific date
+view_event() {
+    clear
+    echo "$greeter"
+    echo "View Events"
+    echo "==========="
+    today=$(date +%Y-%m-%d)
+    if [[ -f "$BASE_DIR/entries/$today.txt" ]]; then
+        echo "Events for $today:"
+        cat "$BASE_DIR/entries/$today.txt"
+    else
+        echo "No events for $today."
+    fi
+    read -p "Press enter to continue..."
+    view_calendar
+}
+
 # Main Menu Screen
 mainmenufunc() {
     clear
@@ -79,7 +136,7 @@ mainmenufunc() {
 
     # Display the menu options
     COLUMNS=12
-    select menuchoice in "View Journal Entries" "Log a Journal Entry" "Delete a Journal Entry" "Change Password" "Proceed to Desktop"
+    select menuchoice in "View Journal Entries" "Log a Journal Entry" "Delete a Journal Entry" "Change Password" "View Calendar" "Proceed to Desktop"
     do
         case $menuchoice in
             "View Journal Entries")
@@ -97,6 +154,10 @@ mainmenufunc() {
             "Change Password")
                 play -q "$BASE_DIR/ui_hacking_charenter_01.wav"
                 change_password_func
+                ;;
+            "View Calendar")
+                play -q "$BASE_DIR/ui_hacking_charenter_01.wav"
+                view_calendar
                 ;;
             "Proceed to Desktop")
                 play -q "$BASE_DIR/ui_hacking_charenter_01.wav"
@@ -125,7 +186,7 @@ viewentriesfunc() {
     echo "$greeter"
     play -q "$BASE_DIR/ui_hacking_charscroll.wav"
     echo "Which Journal Entry would you like to access?" | pv -qL 80
-    
+
     # Display the menu options
     COLUMNS=12
     select readoption in ${entrylist[@]}
@@ -152,7 +213,7 @@ viewentriesfunc() {
         echo
         read -p "Press enter to continue"
         play -q "$BASE_DIR/ui_hacking_charenter_01.wav"
-        
+
         # Goes back to main menu
         repeatmainmenufunc
     done
@@ -206,7 +267,7 @@ deleteentryfunc() {
     echo "$greeter" 
     play -q "$BASE_DIR/ui_hacking_charscroll.wav"
     echo "Which Journal Entry would you like to delete?" | pv -qL 80
-    
+
     # Displays menu options
     COLUMNS=12
     select readoption in ${entrylist[@]}
@@ -220,7 +281,7 @@ deleteentryfunc() {
                 play -q "$BASE_DIR/ui_hacking_charenter_01.wav"
                 ;;
         esac
-        
+
         # Displays menu text again
         clear
         display_center "$BASE_DIR/greeterheader.txt"
@@ -229,7 +290,7 @@ deleteentryfunc() {
         play -q "$BASE_DIR/ui_hacking_charscroll.wav"
         echo "Delete $readoption? Type YES to continue" | pv -qL 80
         play -q "$BASE_DIR/ui_hacking_charscroll.wav"
-        
+
         # Detects user input if they typed in "yes"
         read confirmdeletion
         if [[ ${confirmdeletion^^} == "YES" ]]; then
@@ -244,7 +305,7 @@ deleteentryfunc() {
             play -q "$BASE_DIR/ui_hacking_charenter_01.wav"
             play -q "$BASE_DIR/ui_hacking_passbad.wav"
             sleep 0.2
-            
+
             # Goes back to main menu
             repeatmainmenufunc
         fi
@@ -259,7 +320,7 @@ repeatmainmenufunc() {
     play -q "$BASE_DIR/ui_hacking_charscroll.wav"
     echo "What would you like to do?" | pv -qL 80
     COLUMNS=12
-    select menuchoice in "View Journal Entries" "Log a Journal Entry" "Delete a Journal Entry" "Change Password" "Proceed to Desktop"
+    select menuchoice in "View Journal Entries" "Log a Journal Entry" "Delete a Journal Entry" "Change Password" "View Calendar" "Proceed to Desktop"
     do
         case $menuchoice in
             "View Journal Entries")
@@ -277,6 +338,10 @@ repeatmainmenufunc() {
             "Change Password")
                 play -q "$BASE_DIR/ui_hacking_charenter_01.wav"
                 change_password_func
+                ;;
+            "View Calendar")
+                play -q "$BASE_DIR/ui_hacking_charenter_01.wav"
+                view_calendar
                 ;;
             "Proceed to Desktop")
                 play -q "$BASE_DIR/ui_hacking_charenter_01.wav"
@@ -313,7 +378,7 @@ echo $'
 \ /\ / ) _) / (_/\( (__(  O )/ \/ \ ) _) 
 (_/\_)(____)\____/ \___)\__/ \_)(_/(____)
 '
-           
+
 echo "==============================================" | pv -qL 50
 play -q "$BASE_DIR/ui_hacking_passgood.wav"
 sleep 1
