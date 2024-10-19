@@ -29,9 +29,6 @@ Personal Terminal
 ___________________________________________________'
 
 # Function for login
-clear
-    display_center "$BASE_DIR/greeterheader.txt"
-    echo "$greeter"
 login_func() {
     while true; do
         clear
@@ -51,6 +48,25 @@ login_func() {
     done
 }
 
+# Function to change the password
+change_password_func() {
+    clear
+    echo "Current password is: $CORRECT_PASSWORD"
+    read -s -p "Enter new password: " new_password
+    echo
+    read -s -p "Confirm new password: " confirm_password
+    echo
+
+    if [[ "$new_password" == "$confirm_password" ]]; then
+        CORRECT_PASSWORD="$new_password"
+        echo "Password changed successfully!"
+    else
+        echo "Passwords do not match. Try again."
+    fi
+    sleep 2
+    repeatmainmenufunc
+}
+
 # Main Menu Screen
 mainmenufunc() {
     clear
@@ -64,7 +80,7 @@ mainmenufunc() {
 
     # Display the menu options
     COLUMNS=12
-    select menuchoice in "View Journal Entries" "Log a Journal Entry" "Delete a Journal Entry" "Proceed to Desktop"
+    select menuchoice in "View Journal Entries" "Log a Journal Entry" "Delete a Journal Entry" "Edit a Journal Entry" "Change Password" "Proceed to Desktop"
     do
         case $menuchoice in
             "View Journal Entries")
@@ -78,6 +94,14 @@ mainmenufunc() {
             "Delete a Journal Entry")
                 play -q "$BASE_DIR/ui_hacking_charenter_01.wav"
                 deleteentryfunc
+                ;;
+            "Edit a Journal Entry")
+                play -q "$BASE_DIR/ui_hacking_charenter_01.wav"
+                editentryfunc
+                ;;
+            "Change Password")
+                play -q "$BASE_DIR/ui_hacking_charenter_01.wav"
+                change_password_func
                 ;;
             "Proceed to Desktop")
                 play -q "$BASE_DIR/ui_hacking_charenter_01.wav"
@@ -232,72 +256,45 @@ deleteentryfunc() {
     done
 }
 
-# Same as main menu screen function, but without the annoying animations
-repeatmainmenufunc() {
-    clear
+# Edit entry function
+editentryfunc() {
+    # Display a menu to select an entry to edit
+    entrylist=('Go Back')
+    rawentry="$(find $BASE_DIR/entries -type f)"
+    for i in $rawentry; do
+        i=${i##*/}
+        entrylist+=("$i")
+    done
 
+    clear
     display_center "$BASE_DIR/greeterheader.txt"
-    echo "$greeter" 
+    echo "$greeter"
     play -q "$BASE_DIR/ui_hacking_charscroll.wav"
-    echo "What would you like to do?" | pv -qL 80
-    COLUMNS=12
-    select menuchoice in "View Journal Entries" "Log a Journal Entry" "Delete a Journal Entry" "Proceed to Desktop"
-    do
-        case $menuchoice in
-            "View Journal Entries")
+    echo "Which Journal Entry would you like to edit?" | pv -qL 80
+
+    select readoption in "${entrylist[@]}"; do
+        case $readoption in
+            "Go Back")
                 play -q "$BASE_DIR/ui_hacking_charenter_01.wav"
-                viewentriesfunc
-                ;;
-            "Log a Journal Entry")
-                play -q "$BASE_DIR/ui_hacking_charenter_01.wav"
-                writeentryfunc
-                ;;
-            "Delete a Journal Entry")
-                play -q "$BASE_DIR/ui_hacking_charenter_01.wav"
-                deleteentryfunc
-                ;;
-            "Proceed to Desktop")
-                play -q "$BASE_DIR/ui_hacking_charenter_01.wav"
-                echo "Goodbye!" && exit
+                repeatmainmenufunc
                 ;;
             *)
-                play -q "$BASE_DIR/ui_hacking_passbad.wav"
+                echo "Editing $readoption..." | pv -qL 80
+                nano "$BASE_DIR/entries/$readoption"
+                clear
+                play -q "$BASE_DIR/ui_hacking_charenter_01.wav"
+                repeatmainmenufunc
                 ;;
         esac
     done
 }
 
-# Some random aesthetic startup junk
-clear
-play -q "$BASE_DIR/ui_hacking_charscroll.wav"
-echo "Initializing system boot..." | pv -qL 80
-sleep 0.4
-play -q "$BASE_DIR/ui_hacking_charscroll.wav"
-echo "Loading Federal Terminal OS..." | pv -qL 80
-sleep 0.4
-play -q "$BASE_DIR/ui_hacking_charscroll.wav"
-echo "64K RAM detected..." | pv -qL 80
-sleep 0.4
-play -q "$BASE_DIR/ui_hacking_charscroll.wav"
-echo "Hard Disk Drive recommended..." | pv -qL 80
-sleep 0.4
-play -q "$BASE_DIR/ui_hacking_charscroll.wav"
-echo "Launching Interface..." | pv -qL 80
-sleep 0.4
-clear
-echo $'
- _  _  ____  __     ___  __   _  _  ____ 
-/ )( \(  __)(  )   / __)/  \ ( \/ )(  __)
-\ /\ / ) _) / (_/\( (__(  O )/ \/ \ ) _) 
-(_/\_)(____)\____/ \___)\__/ \_)(_/(____)
-'
-           
-echo "==============================================" | pv -qL 50
-play -q "$BASE_DIR/ui_hacking_passgood.wav"
-sleep 1
+# Function for repeating the main menu
+repeatmainmenufunc() {
+    read -p "Press enter to continue"
+    mainmenufunc
+}
 
-# Call the login function first
+# Start of the script
 login_func
-
-# Go to the main menu
 mainmenufunc
