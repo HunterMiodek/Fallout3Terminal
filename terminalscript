@@ -265,13 +265,16 @@ done
 
 clear
 play -q $BASE_DIR/ui_hacking_charscroll.wav
-echo Initializing boot... | pv -qL 80
+echo Initializing system boot... | pv -qL 80
 sleep 0.4
 play -q $BASE_DIR/ui_hacking_charscroll.wav
-echo Loading RobCo Unified OS...  | pv -qL 80
+echo Loading Federal Terminal OS...  | pv -qL 80
 sleep 0.4
 play -q $BASE_DIR/ui_hacking_charscroll.wav
 echo 64K RAM detected...  | pv -qL 80
+sleep 0.4
+play -q $BASE_DIR/ui_hacking_charscroll.wav
+echo Hard Disk Drive recommended...  | pv -qL 80
 sleep 0.4
 play -q $BASE_DIR/ui_hacking_charscroll.wav
 echo Launching Interface...  | pv -qL 80
@@ -280,13 +283,11 @@ clear
 echo $'
 
 
- _   _             _                                 
-| | | |_   _ _ __ | |_ ___ _ __                      
-| |_| | | | | '_ \| __/ _ \ '__|                     
-|  _  | |_| | | | | ||  __/ |                        
-|_|_|_|\__,_|_| |_|\__\___|_|             
-        
-
+  _  _          _             ___                 _      _   _          
+ | || |_  _ _ _| |_ ___ _ _  | __|__ _  _ _ _  __| |__ _| |_(_)___ _ _  
+ | __ | || | ' \  _/ -_) '_| | _/ _ \ || | ' \/ _` / _` |  _| / _ \ ' \ 
+ |_||_|\_,_|_||_\__\___|_|   |_|\___/\_,_|_||_\__,_\__,_|\__|_\___/_||_|
+                                                                                            
 '
            
 echo "==============================================" | pv -qL 50
