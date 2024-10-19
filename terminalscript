@@ -29,6 +29,9 @@ Personal Terminal
 ___________________________________________________'
 
 # Function for login
+clear
+    display_center "$BASE_DIR/greeterheader.txt"
+    echo "$greeter"
 login_func() {
     while true; do
         clear
