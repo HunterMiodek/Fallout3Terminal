@@ -27,9 +27,9 @@ Thanks to gitHub user iFloris, there are now instructions to run this on MacOS! 
 To run this script clone this repository, make "terminalscript" an executable , and run `cool-retro-term` as follows:
 
 ```bash
-git clone https://github.com/HunterMiodek/Fallout3Terminal
-chmod +x $HOME/Fallout3Terminal/terminalscript
-cool-retro-term --fullscreen --noclose -e bash $HOME/Fallout3Terminal/terminalscript
+git clone https://github.com/HunterMiodek/HunterTerminal
+chmod +x $HOME/HunterMiodekTerminal/terminalscript
+cool-retro-term --fullscreen --noclose -e bash $HOME/HunterTerminal/terminalscript
 ```
 
 You can also enter that command in your startup manager, as well as make launcher with it!
