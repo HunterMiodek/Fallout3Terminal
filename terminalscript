@@ -153,29 +153,34 @@ writeentryfunc ()
 clear
 display_center "$BASE_DIR/greeterheader.txt"
 echo "$greeter" 
-
+play -q $BASE_DIR/ui_hacking_charscroll.wav
 echo "What would you like to name the entry?" | pv -qL 80
 
 #reads user input
 read entrynameinput 
+play -q $BASE_DIR/ui_hacking_charenter_01.wav
 
 #displays menu text again
 clear
 display_center "$BASE_DIR/greeterheader.txt"
 echo "$greeter" 
+play -q $BASE_DIR/ui_hacking_charscroll.wav
 echo Press CTRL+D to finalise entry  | pv -qL 80
+play -q $BASE_DIR/ui_hacking_charscroll.wav
 echo $entrynameinput:  | pv -qL 80
 echo
 #uses cat text editor to write entries. ctrl+d to finish
 cat >"$BASE_DIR/entries/$entrynameinput"
 cat "$BASE_DIR/entries/$entrynameinput"
 clear
+play -q $BASE_DIR/ui_hacking_charenter_01.wav
 
 #returns to mainmenu
 repeatmainmenufunc
 
 
 }
+
 
 
 # Menu to delete an entry
