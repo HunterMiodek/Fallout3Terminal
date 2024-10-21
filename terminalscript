@@ -36,7 +36,7 @@ login_func() {
 
         # Check if the entered password matches the correct password
         if [[ "$entered_password" == "$CORRECT_PASSWORD" ]]; then
-            echo "Login successful!"
+            echo "Login Successful!"
             sleep 1
             return
         else
@@ -69,39 +69,34 @@ mainmenufunc() {
     clear
 
     # Display the Menu text
-    play -q "$BASE_DIR/ui_hacking_charscroll.wav"
     display_center "$BASE_DIR/greeterheader.txt" | pv -qL 80
     echo "$greeter" | pv -qL 80
-    play -q "$BASE_DIR/ui_hacking_charscroll.wav"
     echo "What would you like to do?" | pv -qL 80
 
     # Display the menu options
     COLUMNS=12
-    select menuchoice in "View Journal Entries" "Log a Journal Entry" "Delete a Journal Entry" "Change Password" "Proceed to Desktop"
+    select menuchoice in "View Journal Entries" "Log a Journal Entry" "Delete a Journal Entry" "Print a Journal Entry" "Change Password" "Proceed to Desktop"
     do
         case $menuchoice in
             "View Journal Entries")
-                play -q "$BASE_DIR/ui_hacking_charenter_01.wav"
                 viewentriesfunc
                 ;;
             "Log a Journal Entry")
-                play -q "$BASE_DIR/ui_hacking_charenter_01.wav"
                 writeentryfunc
                 ;;
             "Delete a Journal Entry")
-                play -q "$BASE_DIR/ui_hacking_charenter_01.wav"
                 deleteentryfunc
                 ;;
+            "Print a Journal Entry")
+                printentryfunc
+                ;;
             "Change Password")
-                play -q "$BASE_DIR/ui_hacking_charenter_01.wav"
                 change_password_func
                 ;;
             "Proceed to Desktop")
-                play -q "$BASE_DIR/ui_hacking_charenter_01.wav"
                 echo "Goodbye!" && exit
                 ;;
             *)
-                play -q "$BASE_DIR/ui_hacking_passbad.wav"
                 ;;
         esac
     done
@@ -121,7 +116,6 @@ viewentriesfunc() {
     clear
     display_center "$BASE_DIR/greeterheader.txt"
     echo "$greeter"
-    play -q "$BASE_DIR/ui_hacking_charscroll.wav"
     echo "Which Journal Entry would you like to access?" | pv -qL 80
     
     # Display the menu options
@@ -130,11 +124,9 @@ viewentriesfunc() {
     do
         case $readoption in
             "Go Back")
-                play -q "$BASE_DIR/ui_hacking_charenter_01.wav"
                 repeatmainmenufunc
                 ;;
             *)
-                play -q "$BASE_DIR/ui_hacking_charenter_01.wav"
                 ;;
         esac
 
@@ -143,13 +135,10 @@ viewentriesfunc() {
         display_center "$BASE_DIR/greeterheader.txt"
         echo "$greeter"
         echo
-        play -q "$BASE_DIR/ui_hacking_charscroll.wav"
         echo "$readoption:" | pv -qL 80
-        play -q "$BASE_DIR/ui_hacking_charscroll.wav"
         cat < "$BASE_DIR/entries/$readoption" | pv -qL 80
         echo
         read -p "Press enter to continue"
-        play -q "$BASE_DIR/ui_hacking_charenter_01.wav"
         
         # Goes back to main menu
         repeatmainmenufunc
@@ -162,27 +151,22 @@ writeentryfunc() {
     clear
     display_center "$BASE_DIR/greeterheader.txt"
     echo "$greeter"
-    play -q "$BASE_DIR/ui_hacking_charscroll.wav"
     echo "What would you like to name the entry?" | pv -qL 80
 
     # Reads user input
     read entrynameinput 
-    play -q "$BASE_DIR/ui_hacking_charenter_01.wav"
 
     # Displays menu text again
     clear
     display_center "$BASE_DIR/greeterheader.txt"
     echo "$greeter" 
-    play -q "$BASE_DIR/ui_hacking_charscroll.wav"
     echo "Press CTRL+D to finalize entry" | pv -qL 80
-    play -q "$BASE_DIR/ui_hacking_charscroll.wav"
     echo "$entrynameinput:" | pv -qL 80
     echo
     # Uses cat text editor to write entries. Ctrl+D to finish
     cat >"$BASE_DIR/entries/$entrynameinput"
     cat "$BASE_DIR/entries/$entrynameinput"
     clear
-    play -q "$BASE_DIR/ui_hacking_charenter_01.wav"
 
     # Returns to main menu
     repeatmainmenufunc
@@ -202,7 +186,6 @@ deleteentryfunc() {
     clear
     display_center "$BASE_DIR/greeterheader.txt"
     echo "$greeter" 
-    play -q "$BASE_DIR/ui_hacking_charscroll.wav"
     echo "Which Journal Entry would you like to delete?" | pv -qL 80
     
     # Displays menu options
@@ -211,11 +194,9 @@ deleteentryfunc() {
     do
         case $readoption in
             "Go Back")
-                play -q "$BASE_DIR/ui_hacking_charenter_01.wav"
                 repeatmainmenufunc
                 ;;
             *)
-                play -q "$BASE_DIR/ui_hacking_charenter_01.wav"
                 ;;
         esac
         
@@ -224,23 +205,17 @@ deleteentryfunc() {
         display_center "$BASE_DIR/greeterheader.txt"
         echo "$greeter"
         echo
-        play -q "$BASE_DIR/ui_hacking_charscroll.wav"
         echo "Delete $readoption? Type YES to continue" | pv -qL 80
-        play -q "$BASE_DIR/ui_hacking_charscroll.wav"
         
         # Detects user input if they typed in "yes"
         read confirmdeletion
         if [[ ${confirmdeletion^^} == "YES" ]]; then
             rm -f "$BASE_DIR/entries/$readoption"
-            play -q "$BASE_DIR/ui_hacking_charenter_01.wav"
             echo "FILE DELETED!"
-            play -q "$BASE_DIR/ui_hacking_passgood.wav"
             sleep 0.1
             repeatmainmenufunc
         else
             echo "OPERATION CANCELLED"
-            play -q "$BASE_DIR/ui_hacking_charenter_01.wav"
-            play -q "$BASE_DIR/ui_hacking_passbad.wav"
             sleep 0.2
             
             # Goes back to main menu
@@ -249,39 +224,87 @@ deleteentryfunc() {
     done
 }
 
+# Function to print a journal entry
+printentryfunc() {
+    # Adding all the text files as individual strings to be used as a selection menu
+    entrylist=('Go Back')
+    rawentry="$(find $BASE_DIR/entries -type f)"
+    for i in $rawentry; do
+        i=${i##*/}
+        entrylist+=("$i")
+    done
+
+    # Display the Menu text
+    clear
+    display_center "$BASE_DIR/greeterheader.txt"
+    echo "$greeter"
+    echo "Which Journal Entry would you like to print?" | pv -qL 80
+    
+    # Display the menu options
+    COLUMNS=12
+    select readoption in ${entrylist[@]}
+    do
+        case $readoption in
+            "Go Back")
+                repeatmainmenufunc
+                ;;
+            *)
+                ;;
+        esac
+
+        # Print the selected entry
+        clear
+        display_center "$BASE_DIR/greeterheader.txt"
+        echo "$greeter"
+        echo "Sending $readoption to the printer..." | pv -qL 80
+
+        # Use lp or lpr command to print the file
+        lp "$BASE_DIR/entries/$readoption"
+        
+        # Confirm print success
+        if [[ $? -eq 0 ]]; then
+            echo "Print successful!"
+        else
+            echo "Print failed. Please check the printer settings."
+        fi
+
+        echo
+        read -p "Press enter to continue"
+        
+        # Goes back to main menu
+        repeatmainmenufunc
+    done
+}
+
 # Function for repeating the main menu
 repeatmainmenufunc() {
     clear
     display_center "$BASE_DIR/greeterheader.txt"
     echo "$greeter" 
-    play -q "$BASE_DIR/ui_hacking_charscroll.wav"
     echo "What would you like to do?" | pv -qL 80
     COLUMNS=12
-    select menuchoice in "View Journal Entries" "Log a Journal Entry" "Delete a Journal Entry" "Change Password" "Proceed to Desktop"
+    select menuchoice in "View Journal Entries" "Log a Journal Entry" "Delete a Journal Entry" "Print a Journal Entry" "Change Password" "Proceed to Desktop"
     do
         case $menuchoice in
             "View Journal Entries")
-                play -q "$BASE_DIR/ui_hacking_charenter_01.wav"
                 viewentriesfunc
                 ;;
             "Log a Journal Entry")
-                play -q "$BASE_DIR/ui_hacking_charenter_01.wav"
                 writeentryfunc
                 ;;
             "Delete a Journal Entry")
-                play -q "$BASE_DIR/ui_hacking_charenter_01.wav"
                 deleteentryfunc
                 ;;
+            "Print a Journal Entry")
+                printentryfunc
+                ;;
             "Change Password")
-                play -q "$BASE_DIR/ui_hacking_charenter_01.wav"
                 change_password_func
                 ;;
             "Proceed to Desktop")
-                play -q "$BASE_DIR/ui_hacking_charenter_01.wav"
                 echo "Goodbye!" && exit
                 ;;
             *)
-                play -q "$BASE_DIR/ui_hacking_passbad.wav"
                 ;;
         esac
     done
@@ -289,19 +312,14 @@ repeatmainmenufunc() {
 
 # Some random aesthetic startup junk
 clear
-play -q "$BASE_DIR/ui_hacking_charscroll.wav"
 echo "Initializing system boot..." | pv -qL 80
 sleep 0.4
-play -q "$BASE_DIR/ui_hacking_charscroll.wav"
 echo "Loading Federal Terminal OS..." | pv -qL 80
 sleep 0.4
-play -q "$BASE_DIR/ui_hacking_charscroll.wav"
 echo "64K RAM detected..." | pv -qL 80
 sleep 0.4
-play -q "$BASE_DIR/ui_hacking_charscroll.wav"
 echo "Hard Disk Drive recommended..." | pv -qL 80
 sleep 0.4
-play -q "$BASE_DIR/ui_hacking_charscroll.wav"
 echo "Launching Interface..." | pv -qL 80
 sleep 0.4
 clear
@@ -313,7 +331,6 @@ echo $'
 '
            
 echo "==============================================" | pv -qL 50
-play -q "$BASE_DIR/ui_hacking_passgood.wav"
 sleep 1
 
 # Call the login function first
