@@ -1,5 +1,69 @@
 #!/usr/bin/env bash
 
+# Initialize default password
+password_file="$BASE_DIR/.password"
+
+# If no password file exists, set a default password
+if [[ ! -f "$password_file" ]]; then
+    echo "admin" > "$password_file"  # Default password is 'admin'
+fi
+
+# Function to validate password
+validate_password() {
+    local input_password
+    stored_password=$(cat "$password_file")
+
+    clear
+    echo "Enter password: "
+    read -s input_password  # -s hides the input
+    if [[ "$input_password" == "$stored_password" ]]; then
+        echo "Access granted!"
+        sleep 1
+        mainmenufunc
+    else
+        echo "Incorrect password!"
+        sleep 1
+        validate_password  # Retry on incorrect password
+    fi
+}
+
+# Function to change password
+changepasswordfunc() {
+    clear
+    echo "Enter current password: "
+    read -s current_password
+
+    stored_password=$(cat "$password_file")
+    if [[ "$current_password" == "$stored_password" ]]; then
+        echo "Enter new password: "
+        read -s new_password
+        echo "Confirm new password: "
+        read -s confirm_password
+
+        if [[ "$new_password" == "$confirm_password" ]]; then
+            echo "$new_password" > "$password_file"
+            echo "Password successfully changed!"
+        else
+            echo "Passwords do not match! Try again."
+            sleep 1
+            changepasswordfunc
+        fi
+    else
+        echo "Incorrect current password!"
+        sleep 1
+        changepasswordfunc
+    fi
+    repeatmainmenufunc
+}
+
+# Logout function to return to the password prompt
+logoutfunc() {
+    clear
+    echo "Logging out..."
+    sleep 1
+    validate_password
+}
+
 BASE_DIR="$(cd "$(dirname "$0")"; pwd)" || exit 2
 
 IFS=$'\n'
@@ -36,7 +100,7 @@ mainmenufunc ()
     echo What would you like to do? | pv -qL 80
 
     # Define the menu options
-    options=("View Journal Entries" "Log a Journal Entry" "Delete a Journal Entry" "Network Settings" "Reboot Program" "Proceed to Desktop")
+    options=("View Journal Entries" "Log a Journal Entry" "Delete a Journal Entry" "Network Settings" "Change Password" "Log Out" "Reboot Program" "Proceed to Desktop")
 
     # Use fzf to display the options
     menuchoice=$(printf "%s\n" "${options[@]}" | fzf --height=10 --border --layout=reverse)
@@ -53,6 +117,12 @@ mainmenufunc ()
             ;;
         "Network Settings")
             networkfunc
+            ;;
+        "Change Password")
+            changepasswordfunc
+            ;;
+        "Log Out")
+            logoutfunc
             ;;
         "Reboot Program")
             rebootfunc
@@ -211,7 +281,7 @@ repeatmainmenufunc ()
     display_center "$BASE_DIR/greeterheader.txt"
     echo "$greeter" 
     echo What would you like to do? | pv -qL 80
-    options=("View Journal Entries" "Log a Journal Entry" "Delete a Journal Entry" "Network Settings" "Reboot Program" "Proceed to Desktop")
+    options=("View Journal Entries" "Log a Journal Entry" "Delete a Journal Entry" "Network Settings" "Change Password" "Log Out" "Reboot Program" "Proceed to Desktop")
 
     # Use fzf for repeated main menu
     menuchoice=$(printf "%s\n" "${options[@]}" | fzf --height=10 --border --layout=reverse)
@@ -228,6 +298,12 @@ repeatmainmenufunc ()
             ;;
         "Network Settings")
             networkfunc
+            ;;
+        "Change Password")
+            changepasswordfunc
+            ;;
+        "Log Out")
+            logoutfunc
             ;;
         "Reboot Program")
             rebootfunc
@@ -262,5 +338,5 @@ echo $'
 echo "==============================================" | pv -qL 50
 sleep 1
 
-# Launch the main menu
-mainmenufunc
+# Start the program by asking for the password
+validate_password
