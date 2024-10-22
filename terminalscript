@@ -12,7 +12,7 @@ done
 
 COLUMNS=12
 
-# This function is to display the top header in a centred alignment!
+# This function is to display the top header in a centered alignment
 display_center(){
     columns="$(tput cols)"
     while IFS= read -r line; do
@@ -36,7 +36,7 @@ mainmenufunc ()
     echo What would you like to do? | pv -qL 80
 
     # Define the menu options
-    options=("View Journal Entries" "Log a Journal Entry" "Delete a Journal Entry" "Proceed to Desktop")
+    options=("View Journal Entries" "Log a Journal Entry" "Delete a Journal Entry" "Network Settings" "Proceed to Desktop")
 
     # Use fzf to display the options
     menuchoice=$(printf "%s\n" "${options[@]}" | fzf --height=10 --border --layout=reverse)
@@ -51,10 +51,12 @@ mainmenufunc ()
         "Delete a Journal Entry")
             deleteentryfunc
             ;;
+        "Network Settings")
+            networkfunc
+            ;;
         "Proceed to Desktop")
             echo Goodbye! && exit
             ;;
-
         *)
             repeatmainmenufunc
             ;;
@@ -168,6 +170,28 @@ deleteentryfunc ()
     esac
 }
 
+# Function to display network settings
+networkfunc () 
+{
+    clear
+    display_center "$BASE_DIR/greeterheader.txt"
+    echo "$greeter" 
+    echo "Fetching Network Settings..." | pv -qL 80
+    echo
+
+    # Display network information using ifconfig or ip addr
+    if command -v ifconfig &> /dev/null; then
+        ifconfig | pv -qL 80
+    elif command -v ip &> /dev/null; then
+        ip addr | pv -qL 80
+    else
+        echo "No network information tools found!" | pv -qL 80
+    fi
+
+    echo
+    read -p "Press enter to return to the main menu"
+    repeatmainmenufunc
+}
 
 # Same as the main menu function, but without the animations
 repeatmainmenufunc ()
@@ -176,7 +200,7 @@ repeatmainmenufunc ()
     display_center "$BASE_DIR/greeterheader.txt"
     echo "$greeter" 
     echo What would you like to do? | pv -qL 80
-    options=("View Journal Entries" "Log a Journal Entry" "Delete a Journal Entry" "Proceed to Desktop")
+    options=("View Journal Entries" "Log a Journal Entry" "Delete a Journal Entry" "Network Settings" "Proceed to Desktop")
 
     # Use fzf for repeated main menu
     menuchoice=$(printf "%s\n" "${options[@]}" | fzf --height=10 --border --layout=reverse)
@@ -190,6 +214,9 @@ repeatmainmenufunc ()
             ;;
         "Delete a Journal Entry")
             deleteentryfunc
+            ;;
+        "Network Settings")
+            networkfunc
             ;;
         "Proceed to Desktop")
             echo Goodbye! && exit
