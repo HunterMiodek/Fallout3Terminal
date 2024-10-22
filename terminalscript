@@ -47,7 +47,7 @@ logout() {
     echo "Logging out..."
     sleep 1
     clear
-    main
+    check_password  # Call check_password to return to the password screen
 }
 
 # This function is to display the top header in a centered alignment!
@@ -275,8 +275,6 @@ echo $'
 echo "==============================================" | pv -qL 50
 sleep 1
 
-# Check password before going to the main menu
+# Go to the password check before accessing the main menu
 check_password
-
-# Goes to the main menu
 mainmenufunc
