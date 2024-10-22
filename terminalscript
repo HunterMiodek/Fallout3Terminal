@@ -54,6 +54,10 @@ mainmenufunc ()
         "Proceed to Desktop")
             echo Goodbye! && exit
             ;;
+        "==========================================================")
+        "Help")
+            helpfunc
+            ;;
         *)
             repeatmainmenufunc
             ;;
@@ -166,6 +170,28 @@ deleteentryfunc ()
             ;;
     esac
 }
+
+helpfunc () 
+{
+    entrylist=('Go Back')
+    rawentry="$(find $BASE_DIR/entries -type f)"
+    for i in $rawentry; do
+        i=${i##*/}
+        entrylist+=("$i")
+    done
+
+    clear
+    display_center "$BASE_DIR/greeterheader.txt"
+    echo "$greeter" 
+    echo "Help Commands should be displayed here" | pv -qL 80
+
+    # Use fzf to select an entry
+
+    case $readoption in
+        "Go Back")
+            repeatmainmenufunc
+            ;;
+        *)
 
 # Same as the main menu function, but without the animations
 repeatmainmenufunc ()
