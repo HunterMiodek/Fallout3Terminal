@@ -6,14 +6,13 @@ IFS=$'\n'
 entrylist=('Go Back')
 rawentry="$(find $BASE_DIR/entries -type f)"
 for i in $rawentry; do
-i=${i##*/}
-entrylist+=("$i")
+    i=${i##*/}
+    entrylist+=("$i")
 done
 
 COLUMNS=12
 
-
-#This function is to display the top header in a centred alignment!
+# This function is to display the top header in a centred alignment!
 display_center(){
     columns="$(tput cols)"
     while IFS= read -r line; do
@@ -21,238 +20,204 @@ display_center(){
     done < "$1"
 }
 
-
-#This string is to be displayed as a custom "title header" at the top, feel free to customise it, as most Terminals in Fallout have their own custom one based on their owner!
+# This string is to be displayed as a custom "title header" at the top
 greeter=$'
 Personal Terminal 
 ___________________________________________________'
 
-
-
-#Main Menu Screen
+# Main Menu Screen
 mainmenufunc () 
 {
-clear
+    clear
 
-#display the Menu text
-display_center "$BASE_DIR/greeterheader.txt" | pv -qL 80
-echo "$greeter" | pv -qL 80
-echo What would you like to do? | pv -qL 80
+    # Display the Menu text
+    display_center "$BASE_DIR/greeterheader.txt" | pv -qL 80
+    echo "$greeter" | pv -qL 80
+    echo What would you like to do? | pv -qL 80
 
-#Display the menu options
-COLUMNS=12
-select menuchoice in "View Journal Entries" "Log a Journal Entry" "Delete a Journal Entry" "Proceed to Desktop"
-do
+    # Define the menu options
+    options=("View Journal Entries" "Log a Journal Entry" "Delete a Journal Entry" "Proceed to Desktop")
+
+    # Use fzf to display the options
+    menuchoice=$(printf "%s\n" "${options[@]}" | fzf --height=10 --border --layout=reverse)
+
     case $menuchoice in
-    "View Journal Entries")
-    viewentriesfunc
-    ;;
-    "Log a Journal Entry")
-   writeentryfunc
-    ;;
-    "Delete a Journal Entry")
-    deleteentryfunc
-    ;;
-    "Proceed to Desktop")
-    echo Goodbye! && exit
-    ;;
-    *)
-    ;;
+        "View Journal Entries")
+            viewentriesfunc
+            ;;
+        "Log a Journal Entry")
+            writeentryfunc
+            ;;
+        "Delete a Journal Entry")
+            deleteentryfunc
+            ;;
+        "Proceed to Desktop")
+            echo Goodbye! && exit
+            ;;
+        *)
+            repeatmainmenufunc
+            ;;
     esac
-done
 }
 
-
-#Option 1 Menu, Viewing Journal Entries
+# Option 1 Menu, Viewing Journal Entries
 viewentriesfunc () 
 {
-#adding all the text files as individual strings to be used as a selection menu
-entrylist=('Go Back')
-rawentry="$(find $BASE_DIR/entries -type f)"
-for i in $rawentry; do
-i=${i##*/}
-entrylist+=("$i")
-done
+    entrylist=('Go Back')
+    rawentry="$(find $BASE_DIR/entries -type f)"
+    for i in $rawentry; do
+        i=${i##*/}
+        entrylist+=("$i")
+    done
 
-#display the Menu text
     clear
     display_center "$BASE_DIR/greeterheader.txt"
     echo "$greeter" 
-    echo Which Journal Entry would you like to access? | pv -qL 80
-    
-    #display the menu options
-    COLUMNS=12
-    select readoption in ${entrylist[@]}
-    do
-    case $readoption in
-    "Go Back")
-    repeatmainmenufunc
-    ;;
-        *)
-    ;;
-    esac
+    echo "Which Journal Entry would you like to access?" | pv -qL 80
 
-    #displays the selected entry
-    clear
-   display_center "$BASE_DIR/greeterheader.txt"
-   echo "$greeter"
-    echo
-    echo "$readoption:"  | pv -qL 80
-    cat< "$BASE_DIR/entries/$readoption"  | pv -qL 80
-    echo
-    read -p "Press enter to continue"
-    
-    #goes back to main menu
-    repeatmainmenufunc
-    done
+    # Use fzf to select an entry
+    readoption=$(printf "%s\n" "${entrylist[@]}" | fzf --height=10 --border --layout=reverse)
+
+    case $readoption in
+        "Go Back")
+            repeatmainmenufunc
+            ;;
+        *)
+            clear
+            display_center "$BASE_DIR/greeterheader.txt"
+            echo "$greeter"
+            echo
+            echo "$readoption:" | pv -qL 80
+            cat "$BASE_DIR/entries/$readoption" | pv -qL 80
+            echo
+            read -p "Press enter to continue"
+            repeatmainmenufunc
+            ;;
+    esac
 }
 
-#menu for writing an entry
+# Menu for writing an entry
 writeentryfunc () 
 {
-
-#displays menu text
-clear
-display_center "$BASE_DIR/greeterheader.txt"
-echo "$greeter" 
-echo "What would you like to name the entry?" | pv -qL 80
-
-#reads user input
-read entrynameinput 
-
-#displays menu text again
-clear
-display_center "$BASE_DIR/greeterheader.txt"
-echo "$greeter" 
-echo Press CTRL+D to finalise entry  | pv -qL 80
-echo $entrynameinput:  | pv -qL 80
-echo
-#uses cat text editor to write entries. ctrl+d to finish
-cat >"$BASE_DIR/entries/$entrynameinput"
-cat "$BASE_DIR/entries/$entrynameinput"
-clear
-
-#returns to mainmenu
-repeatmainmenufunc
-
-
-}
-
-#menu to delete an entry
-deleteentryfunc () 
-{
-
-#adding all the text files as individual strings to be used as a selection menu
-entrylist=('Go Back')
-rawentry="$(find $BASE_DIR/entries -type f)"
-for i in $rawentry; do
-i=${i##*/}
-entrylist+=("$i")
-done
-
-    #displays menu text
     clear
     display_center "$BASE_DIR/greeterheader.txt"
     echo "$greeter" 
-    echo Which Journal Entry would you like to delete? | pv -qL 80
-    
-    #displays menu options
-    COLUMNS=12
-    select readoption in ${entrylist[@]}
-    do
-    case $readoption in
-    "Go Back")
-    repeatmainmenufunc
-    ;;
-        *)
-    ;;
-    esac
-    
-    #displays menu text again
+    echo "What would you like to name the entry?" | pv -qL 80
+
+    # Read user input for entry name
+    read entrynameinput 
+
     clear
-   display_center "$BASE_DIR/greeterheader.txt"
-   echo "$greeter"
+    display_center "$BASE_DIR/greeterheader.txt"
+    echo "$greeter" 
+    echo "Press CTRL+D to finalise entry" | pv -qL 80
+    echo "$entrynameinput:" | pv -qL 80
     echo
-    echo "Delete $readoption? Type YES to continue"  | pv -qL 80
-    
-    #detects user input if they typed in "yes". case insensitive as it converts it to all caps
-    read confirmdeletion
-     if  [[ ${confirmdeletion^^} == "YES" ]]
-     then
-     rm -f "$BASE_DIR/entries/$readoption"
-     echo FILE DELETED!
-     sleep 0.1
-                repeatmainmenufunc
-                
-            #if something other than yes was typed in
-        else
-        echo OPERATION CANCELLED
-        sleep 0.2
-        
-        #goes back to main menu
-        repeatmainmenufunc
-        fi
-        done
+
+    # Use cat to create the entry
+    cat >"$BASE_DIR/entries/$entrynameinput"
+    cat "$BASE_DIR/entries/$entrynameinput"
+    clear
+
+    repeatmainmenufunc
 }
 
-#same as main menu screen function, but without the annoying animations
+# Menu to delete an entry
+deleteentryfunc () 
+{
+    entrylist=('Go Back')
+    rawentry="$(find $BASE_DIR/entries -type f)"
+    for i in $rawentry; do
+        i=${i##*/}
+        entrylist+=("$i")
+    done
+
+    clear
+    display_center "$BASE_DIR/greeterheader.txt"
+    echo "$greeter" 
+    echo "Which Journal Entry would you like to delete?" | pv -qL 80
+
+    # Use fzf to select an entry for deletion
+    readoption=$(printf "%s\n" "${entrylist[@]}" | fzf --height=10 --border --layout=reverse)
+
+    case $readoption in
+        "Go Back")
+            repeatmainmenufunc
+            ;;
+        *)
+            clear
+            display_center "$BASE_DIR/greeterheader.txt"
+            echo "$greeter"
+            echo
+            echo "Delete $readoption? Type YES to continue" | pv -qL 80
+
+            # Confirm deletion
+            read confirmdeletion
+            if [[ ${confirmdeletion^^} == "YES" ]]; then
+                rm -f "$BASE_DIR/entries/$readoption"
+                echo "FILE DELETED!"
+                sleep 0.1
+                repeatmainmenufunc
+            else
+                echo "OPERATION CANCELLED"
+                sleep 0.2
+                repeatmainmenufunc
+            fi
+            ;;
+    esac
+}
+
+# Same as the main menu function, but without the animations
 repeatmainmenufunc ()
 {
-clear
+    clear
+    display_center "$BASE_DIR/greeterheader.txt"
+    echo "$greeter" 
+    echo What would you like to do? | pv -qL 80
+    options=("View Journal Entries" "Log a Journal Entry" "Delete a Journal Entry" "Proceed to Desktop")
 
-display_center "$BASE_DIR/greeterheader.txt"
-echo "$greeter" 
-echo What would you like to do? | pv -qL 80
-COLUMNS=12
-select menuchoice in "View Journal Entries" "Log a Journal Entry" "Delete a Journal Entry" "Proceed to Desktop"
-do
+    # Use fzf for repeated main menu
+    menuchoice=$(printf "%s\n" "${options[@]}" | fzf --height=10 --border --layout=reverse)
+
     case $menuchoice in
-    "View Journal Entries")
-    viewentriesfunc
-    ;;
-    "Log a Journal Entry")
-   writeentryfunc
-    ;;
-    "Delete a Journal Entry")
-    deleteentryfunc
-    ;;
-    "Proceed to Desktop")
-    echo Goodbye! && exit
-    ;;
-    *)
-    ;;
+        "View Journal Entries")
+            viewentriesfunc
+            ;;
+        "Log a Journal Entry")
+            writeentryfunc
+            ;;
+        "Delete a Journal Entry")
+            deleteentryfunc
+            ;;
+        "Proceed to Desktop")
+            echo Goodbye! && exit
+            ;;
+        *)
+            repeatmainmenufunc
+            ;;
     esac
-done
 }
 
-
-
-
-#some random aesthetic startup junk
-
+# Some random aesthetic startup text
 clear
-echo Initializing boot... | pv -qL 80
+echo "Initializing boot..." | pv -qL 80
 sleep 0.4
-echo Loading Federal Terminal OS...  | pv -qL 80
+echo "Loading Federal Terminal OS..."  | pv -qL 80
 sleep 0.4
-echo 64K RAM detected...  | pv -qL 80
+echo "64K RAM detected..."  | pv -qL 80
 sleep 0.4
-echo Launching Interface...  | pv -qL 80
+echo "Launching Interface..."  | pv -qL 80
 sleep 0.4
 clear
 echo $'
-
-
  _  _  ____  __     ___  __   _  _  ____ 
 / )( \(  __)(  )   / __)/  \ ( \/ )(  __)
 \ /\ / ) _) / (_/\( (__(  O )/ \/ \ ) _) 
 (_/\_)(____)\____/ \___)\__/ \_)(_/(____)
-          
-
 '
-           
+
 echo "==============================================" | pv -qL 50
 sleep 1
 
-#goes to the main menu
-mainmenufunc;
+# Launch the main menu
+mainmenufunc
