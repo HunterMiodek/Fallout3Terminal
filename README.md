@@ -27,9 +27,9 @@ Thanks to gitHub user iFloris, there are now instructions to run this on MacOS! 
 To run this script clone this repository, make "terminalscript" an executable , and run `cool-retro-term` as follows:
 
 ```bash
-git clone https://github.com/HunterMiodek/FederalTerminalV17
-chmod +x $HOME/FederalTerminalV17/terminalscript
-cool-retro-term --fullscreen --noclose -e bash $HOME/FederalTerminalV17/terminalscript
+git clone https://github.com/HunterMiodek/FederalTerminalV18
+chmod +x $HOME/FederalTerminalV18/terminalscript
+cool-retro-term --fullscreen --noclose -e bash $HOME/FederalTerminalV18/terminalscript
 ```
 
 You can also enter that command in your startup manager, as well as make launcher with it!
