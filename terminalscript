@@ -22,6 +22,7 @@ check_password() {
         read -sp "Enter a new password: " PASSWORD
         echo "$PASSWORD" > "$PASSWORD_FILE"
         echo -e "\nPassword set successfully."
+        return 0  # Return 0 on success
     else
         read -sp "Enter your password: " PASSWORD
         local stored_password=$(<"$PASSWORD_FILE")
@@ -31,6 +32,7 @@ check_password() {
         fi
     fi
     echo -e "\nAccess granted."
+    return 0  # Return 0 on success
 }
 
 # Function to change password
@@ -48,6 +50,7 @@ logout() {
     sleep 1
     clear
     check_password  # Call check_password to return to the password screen
+    mainmenufunc  # Add this line to go to the main menu after successful login
 }
 
 # This function is to display the top header in a centered alignment!
@@ -251,16 +254,12 @@ repeatmainmenufunc() {
 
 # Some random aesthetic startup junk
 clear
-
 echo "Initializing boot..." | pv -qL 80
 sleep 0.4
-
 echo "Loading Federal Terminal OS..." | pv -qL 80
 sleep 0.4
-
 echo "64K RAM detected..." | pv -qL 80
 sleep 0.4
-
 echo "Launching Interface..." | pv -qL 80
 sleep 0.4
 clear
@@ -269,9 +268,7 @@ echo $'
 ( \/\/ )( ___)(  )  / __)(  _  )(  \/  )( ___)
  )    (  )__)  )(__( (__  )(_)(  )    (  )__) 
 (__/\__)(____)(____)\___)(_____)(_/\/\_)(____)
-
 '
-           
 echo "==============================================" | pv -qL 50
 sleep 1
 
