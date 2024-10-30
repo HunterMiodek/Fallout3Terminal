@@ -2,12 +2,36 @@
 
 BASE_DIR="$(cd "$(dirname "$0")"; pwd)" || exit 2
 
-# Set your initial password here
-PASSWORD="yourpassword"
+# Password file path
+PASSWORD_FILE="$BASE_DIR/password.txt"
+
+# Function to set the initial password
+set_initial_password() {
+    read -sp "Set your password: " new_password
+    echo  # Newline for formatting
+    read -sp "Confirm your password: " confirm_password
+    echo  # Newline for formatting
+
+    if [[ "$new_password" == "$confirm_password" ]]; then
+        echo "$new_password" > "$PASSWORD_FILE"
+        echo "Password set successfully!"
+        sleep 1
+    else
+        echo "Passwords do not match. Please try again."
+        sleep 1
+        set_initial_password
+    fi
+}
 
 # Password checking function
 check_password() {
     local attempts=3  # Number of attempts allowed
+    if [[ ! -f "$PASSWORD_FILE" ]]; then
+        set_initial_password
+    fi
+
+    PASSWORD=$(<"$PASSWORD_FILE")  # Read password from file
+
     while (( attempts > 0 )); do
         read -sp "Enter Password: " input_password
         echo  # Newline for formatting
@@ -39,7 +63,7 @@ change_password() {
     echo  # Newline for formatting
 
     if [[ "$new_password" == "$confirm_password" ]]; then
-        PASSWORD="$new_password"
+        echo "$new_password" > "$PASSWORD_FILE"
         echo "Password changed successfully!"
         sleep 1
     else
@@ -279,14 +303,12 @@ echo $'
 / )( \(  __)(  )   / __)/  \ ( \/ )(  __)
 / /\ / ) _) / (_/\( (__(  O )/ \/ \ ) _) 
 (_/\_)(____)\____/ \___)\__/ \_)(_/(____)
-           
+
 '
-           
 echo "==============================================" | pv -qL 50
 sleep 1
 
-# Call the password check before proceeding to main menu
+# Go to the password check
 check_password
-
-# Goes to the main menu if password is correct
+# Go to the main menu
 mainmenufunc
