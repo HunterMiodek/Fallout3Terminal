@@ -2,58 +2,71 @@
 
 BASE_DIR="$(cd "$(dirname "$0")"; pwd)" || exit 2
 
+# Set your initial password here
+PASSWORD="yourpassword"
+
+# Password checking function
+check_password() {
+    local attempts=3  # Number of attempts allowed
+    while (( attempts > 0 )); do
+        read -sp "Enter Password: " input_password
+        echo  # Newline for formatting
+        if [[ "$input_password" == "$PASSWORD" ]]; then
+            echo "Access Granted!"
+            sleep 1
+            return 0
+        else
+            echo "Incorrect password. You have $((attempts - 1)) attempts remaining."
+            ((attempts--))
+        fi
+    done
+
+    # Display "Terminal Lockout" if all attempts fail
+    clear
+    echo  # Newline for spacing
+    tput civis  # Hide the cursor for a cleaner look
+    tput cup $(( $(tput lines) / 2 )) $(( ($(tput cols) - 14) / 2 ))  # Center text
+    echo "Terminal Lockout"
+    tput cnorm  # Restore cursor
+    exit 1
+}
+
+# Change password function
+change_password() {
+    read -sp "Enter new password: " new_password
+    echo  # Newline for formatting
+    read -sp "Confirm new password: " confirm_password
+    echo  # Newline for formatting
+
+    if [[ "$new_password" == "$confirm_password" ]]; then
+        PASSWORD="$new_password"
+        echo "Password changed successfully!"
+        sleep 1
+    else
+        echo "Passwords do not match. Password not changed."
+        sleep 1
+    fi
+}
+
+# Logout function
+logout() {
+    echo "Logging out..."
+    sleep 1
+    clear
+    check_password
+}
+
 IFS=$'\n'
 entrylist=('Go Back')
 rawentry="$(find $BASE_DIR/entries -type f)"
 for i in $rawentry; do
-    i=${i##*/}
+    i=${i##*/}  # Remove the path, leave the filename only
     entrylist+=("$i")
 done
 
 COLUMNS=12
 
-# File to store the password
-PASSWORD_FILE="$BASE_DIR/password.txt"
-
-# Function to check if password file exists and prompt for password
-check_password() {
-    if [ ! -f "$PASSWORD_FILE" ]; then
-        echo "Creating a new password..."
-        read -sp "Enter a new password: " PASSWORD
-        echo "$PASSWORD" > "$PASSWORD_FILE"
-        echo -e "\nPassword set successfully."
-        return 0  # Return 0 on success
-    else
-        read -sp "Enter your password: " PASSWORD
-        local stored_password=$(<"$PASSWORD_FILE")
-        if [[ "$PASSWORD" != "$stored_password" ]]; then
-            echo -e "\nIncorrect password. Exiting."
-            exit 1
-        fi
-    fi
-    echo -e "\nAccess granted."
-    return 0  # Return 0 on success
-}
-
-# Function to change password
-change_password() {
-    read -sp "Enter new password: " NEW_PASSWORD
-    echo "$NEW_PASSWORD" > "$PASSWORD_FILE"
-    echo -e "\nPassword changed successfully."
-    sleep 1
-    repeatmainmenufunc
-}
-
-# Function to log out
-logout() {
-    echo "Logging out..."
-    sleep 1
-    clear
-    check_password  # Call check_password to return to the password screen
-    mainmenufunc  # Add this line to go to the main menu after successful login
-}
-
-# This function is to display the top header in a centered alignment!
+# This function is to display the top header in a centered alignment
 display_center() {
     columns="$(tput cols)"
     while IFS= read -r line; do
@@ -61,21 +74,22 @@ display_center() {
     done < "$1"
 }
 
-# This string is to be displayed as a custom "title header" at the top
+# Custom "title header" at the top
 greeter=$'
-[Personal Terminal] 
+Federal Terminal  
 ___________________________________________________'
 
-# Main menu screen
+# Main Menu Screen
 mainmenufunc() {
     clear
     display_center "$BASE_DIR/greeterheader.txt" | pv -qL 80
     echo "$greeter" | pv -qL 80
-    echo "What would you like to do?" | pv -qL 80
+    echo What would you like to do? | pv -qL 80
 
     # Display the menu options
     COLUMNS=12
-    select menuchoice in "View Journal Entries" "Log a Journal Entry" "Delete a Journal Entry" "Change Password" "Log Out" "Proceed to Desktop"; do
+    select menuchoice in "View Journal Entries" "Log a Journal Entry" "Delete a Journal Entry" "Change Password" "Logout" "Proceed to Desktop"
+    do
         case $menuchoice in
             "View Journal Entries")
                 viewentriesfunc
@@ -89,11 +103,12 @@ mainmenufunc() {
             "Change Password")
                 change_password
                 ;;
-            "Log Out")
+            "Logout")
                 logout
                 ;;
             "Proceed to Desktop")
-                echo "Goodbye!" && exit
+                echo Goodbye!
+                exit
                 ;;
             *)
                 ;;
@@ -103,11 +118,10 @@ mainmenufunc() {
 
 # Option 1 Menu, Viewing Journal Entries
 viewentriesfunc() {
-    # Adding all the text files as individual strings to be used as a selection menu
     entrylist=('Go Back')
     rawentry="$(find $BASE_DIR/entries -type f)"
     for i in $rawentry; do
-        i=${i##*/}
+        i=${i##*/}  # Remove the path, leave the filename only
         entrylist+=("$i")
     done
 
@@ -115,11 +129,12 @@ viewentriesfunc() {
     clear
     display_center "$BASE_DIR/greeterheader.txt"
     echo "$greeter"
-    echo "Which Journal Entry would you like to access?" | pv -qL 80
+    echo Which Journal Entry would you like to access? | pv -qL 80
 
     # Display the menu options
     COLUMNS=12
-    select readoption in ${entrylist[@]}; do
+    select readoption in "${entrylist[@]}"
+    do
         case $readoption in
             "Go Back")
                 repeatmainmenufunc
@@ -128,67 +143,63 @@ viewentriesfunc() {
                 ;;
         esac
 
-        # Displays the selected entry
+        # Display the selected entry
         clear
         display_center "$BASE_DIR/greeterheader.txt"
         echo "$greeter"
         echo
-        echo "$readoption:" | pv -qL 80
-        cat < "$BASE_DIR/entries/$readoption" | pv -qL 80
+        echo "$readoption:"  | pv -qL 80
+        cat "$BASE_DIR/entries/$readoption" | pv -qL 80
         echo
         read -p "Press enter to continue"
-
-        # Goes back to main menu
+        
+        # Go back to main menu
         repeatmainmenufunc
     done
 }
 
 # Menu for writing an entry
 writeentryfunc() {
-    # Displays menu text
     clear
     display_center "$BASE_DIR/greeterheader.txt"
     echo "$greeter"
     echo "What would you like to name the entry?" | pv -qL 80
 
-    # Reads user input
+    # Read user input
     read entrynameinput
 
-    # Displays menu text again
     clear
     display_center "$BASE_DIR/greeterheader.txt"
     echo "$greeter"
-    echo "Press CTRL+D to finalize entry" | pv -qL 80
-    echo "$entrynameinput:" | pv -qL 80
+    echo Press CTRL+D to finalize entry | pv -qL 80
+    echo $entrynameinput:  | pv -qL 80
     echo
-    # Uses cat text editor to write entries. ctrl+d to finish
+
+    # Use cat text editor to write entries, ctrl+d to finish
     cat >"$BASE_DIR/entries/$entrynameinput"
-    cat "$BASE_DIR/entries/$entrynameinput"
     clear
 
-    # Returns to main menu
+    # Return to main menu
     repeatmainmenufunc
 }
 
 # Menu to delete an entry
 deleteentryfunc() {
-    # Adding all the text files as individual strings to be used as a selection menu
     entrylist=('Go Back')
     rawentry="$(find $BASE_DIR/entries -type f)"
     for i in $rawentry; do
-        i=${i##*/}
+        i=${i##*/}  # Remove the path, leave the filename only
         entrylist+=("$i")
     done
 
-    # Displays menu text
     clear
     display_center "$BASE_DIR/greeterheader.txt"
     echo "$greeter"
-    echo "Which Journal Entry would you like to delete?" | pv -qL 80
+    echo Which Journal Entry would you like to delete? | pv -qL 80
 
-    # Displays menu options
     COLUMNS=12
-    select readoption in ${entrylist[@]}; do
+    select readoption in "${entrylist[@]}"
+    do
         case $readoption in
             "Go Back")
                 repeatmainmenufunc
@@ -197,36 +208,34 @@ deleteentryfunc() {
                 ;;
         esac
 
-        # Displays menu text again
         clear
         display_center "$BASE_DIR/greeterheader.txt"
         echo "$greeter"
         echo
         echo "Delete $readoption? Type YES to continue" | pv -qL 80
-
-        # Detects user input if they typed in "yes". case insensitive as it converts it to all caps
         read confirmdeletion
         if [[ ${confirmdeletion^^} == "YES" ]]; then
             rm -f "$BASE_DIR/entries/$readoption"
-            echo "FILE DELETED!"
+            echo FILE DELETED!
             sleep 0.1
             repeatmainmenufunc
         else
-            echo "OPERATION CANCELLED"
+            echo OPERATION CANCELLED
             sleep 0.2
             repeatmainmenufunc
         fi
     done
 }
 
-# Same as main menu screen function, but without the annoying animations
+# Repeat main menu screen function without animations
 repeatmainmenufunc() {
     clear
     display_center "$BASE_DIR/greeterheader.txt"
     echo "$greeter"
-    echo "What would you like to do?" | pv -qL 80
+    echo What would you like to do? | pv -qL 80
     COLUMNS=12
-    select menuchoice in "View Journal Entries" "Log a Journal Entry" "Delete a Journal Entry" "Change Password" "Log Out" "Proceed to Desktop"; do
+    select menuchoice in "View Journal Entries" "Log a Journal Entry" "Delete a Journal Entry" "Change Password" "Logout" "Proceed to Desktop"
+    do
         case $menuchoice in
             "View Journal Entries")
                 viewentriesfunc
@@ -240,11 +249,12 @@ repeatmainmenufunc() {
             "Change Password")
                 change_password
                 ;;
-            "Log Out")
+            "Logout")
                 logout
                 ;;
             "Proceed to Desktop")
-                echo "Goodbye!" && exit
+                echo Goodbye!
+                exit
                 ;;
             *)
                 ;;
@@ -252,26 +262,31 @@ repeatmainmenufunc() {
     done
 }
 
-# Some random aesthetic startup junk
+# Aesthetic startup
 clear
-echo "Initializing boot..." | pv -qL 80
+echo Initializing boot... | pv -qL 80
 sleep 0.4
-echo "Loading Federal Terminal OS..." | pv -qL 80
+echo Loading Federal Terminal OS...  | pv -qL 80
 sleep 0.4
-echo "64K RAM detected..." | pv -qL 80
+echo 64K RAM detected...  | pv -qL 80
 sleep 0.4
-echo "Launching Interface..." | pv -qL 80
+echo Launching Interface...  | pv -qL 80
 sleep 0.4
 clear
 echo $'
- _    _  ____  __    ___  _____  __  __  ____ 
-( \/\/ )( ___)(  )  / __)(  _  )(  \/  )( ___)
- )    (  )__)  )(__( (__  )(_)(  )    (  )__) 
-(__/\__)(____)(____)\___)(_____)(_/\/\_)(____)
+
+ _  _  ____  __     ___  __   _  _  ____ 
+/ )( \(  __)(  )   / __)/  \ ( \/ )(  __)
+/ /\ / ) _) / (_/\( (__(  O )/ \/ \ ) _) 
+(_/\_)(____)\____/ \___)\__/ \_)(_/(____)
+           
 '
+           
 echo "==============================================" | pv -qL 50
 sleep 1
 
-# Go to the password check before accessing the main menu
+# Call the password check before proceeding to main menu
 check_password
+
+# Goes to the main menu if password is correct
 mainmenufunc
