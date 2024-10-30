@@ -77,7 +77,8 @@ logout() {
     echo "Logging out..."
     sleep 1
     clear
-    check_password
+    check_password  # Check password before returning to the main menu
+    mainmenufunc     # Go directly to the main menu after successful login
 }
 
 IFS=$'\n'
@@ -301,11 +302,11 @@ echo $'
 
  _  _  ____  __     ___  __   _  _  ____ 
 / )( \(  __)(  )   / __)/  \ ( \/ )(  __)
-/ /\ / ) _) / (_/\( (__(  O )/ \/ \ ) _) 
+\ /\ / ) _) / (_/\( (__(  O )/ \/ \ ) _) 
 (_/\_)(____)\____/ \___)\__/ \_)(_/(____)
-
+           
 '
-echo "==============================================" | pv -qL 50
+echo "=============================================="
 sleep 1
 
 # Go to the password check
